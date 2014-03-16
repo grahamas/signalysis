@@ -7,7 +7,7 @@ datalen = length(data);
 
 validindices_hyp = (interestindices > window) & (interestindices < (datalen - window));
 
-hyp = sumaroundfoci(data, interestindices(validindices_hyp), window);
+hyp = avgaroundfoci(data, interestindices(validindices_hyp), window);
 
 [S, t, f] = mtspecgramc(hyp, movingwin, params); plot_matrix(S, t, f)
 

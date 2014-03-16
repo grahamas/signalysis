@@ -10,8 +10,8 @@ randindices = round(rand(1, numpts) .* datalen);
 validindices_rand = (randindices > window) & (randindices < (datalen - window));
 validindices_hyp = (interestindices > window) & (interestindices < (datalen - window));
 
-hyp = sumaroundfoci(data, interestindices(validindices_hyp), window);
-randdata = sumaroundfoci(data, randindices(validindices_rand), window);
+hyp = avgaroundfoci(data, interestindices(validindices_hyp), window);
+randdata = avgaroundfoci(data, randindices(validindices_rand), window);
 
 subplot(1,2,1)
 [S, t, f] = mtspecgramc(hyp, movingwin, params); plot_matrix(S, t, f)
