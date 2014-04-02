@@ -9,6 +9,6 @@ for i=1:numfoci
     focidata(i, :) = data((foci(i)-window):(foci(i)+window));
 end
 
-focimean = mean(focidata, 1);
+focimean = [mean(focidata)];
 
 end

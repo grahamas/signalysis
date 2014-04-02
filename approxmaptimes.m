@@ -1,5 +1,6 @@
 function mask = approxmaptimes( map, timedata, error )
-%UNTITLED2 Summary of this function goes here
+%APPROXMAPTIMES Returns a mask with 1 at indices close to map times in the
+%timedata. Error says how close they must be.
 %   Detailed explanation goes here
 mask = zeros(1, length(timedata));
 for time=map
