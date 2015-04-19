@@ -3,5 +3,12 @@
 # For a project mostly in C, the following would be a good set of
 # exclude patterns (uncomment them if you want to use them):
 *.[oa]
+*.so
+.*
 *~
 pathdef.m
+stim_experiment/nev_sorted
+stim_experiment/*.json
+stim_experiment/venv
+stim_experiment/build
+stim_experiment/local_build
