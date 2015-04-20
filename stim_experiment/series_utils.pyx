@@ -41,84 +41,93 @@ ctypedef np.int_t DTYPE_t
 #	print len1
 #
 #	return xcorr
-	# We were running through all memory (inc. swap)
-	# This test to see if the xcorr is interesting. 
-	# If not, drop it by returning [].
-	# cdef int sigs = 0
-	# for ii in range(3,max_diff):
-	# 	if xcorr[ii] > sig_thresh:
-	# 		sigs += 1
-	# if sigs >= min_sigs:
-	# 	return xcorr
-	# else:
-	# 	return []
+    # We were running through all memory (inc. swap)
+    # This test to see if the xcorr is interesting. 
+    # If not, drop it by returning [].
+    # cdef int sigs = 0
+    # for ii in range(3,max_diff):
+    # 	if xcorr[ii] > sig_thresh:
+    # 		sigs += 1
+    # if sigs >= min_sigs:
+    # 	return xcorr
+    # else:
+    # 	return []
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef double[:] _times_xcorr(long[:] times1, 
-		int len1,
-		long[:] times2,
-		int len2,
-		int max_diff,
-		int min_sigs=0,
-		int sig_thresh=0):
-	#### THIS IS A TEST ####
-	# Supposed to be a helper function for corr_mat_from_times,
-	# entirely WITHIN parallel call, to minimize thread switching.
+#@cython.boundscheck(False)
+#@cython.wraparound(False)
+#cdef double[::1] _times_xcorr(long[:] times1, 
+#        int len1,
+#        long[:] times2,
+#        int len2,
+#        int max_diff,
+#        int min_sigs=0,
+#        int sig_thresh=0):
+#    #### THIS IS A TEST ####
+#    # Supposed to be a helper function for corr_mat_from_times,
+#    # entirely WITHIN parallel call, to minimize thread switching.
+#
+#    cdef unsigned int offset = 0
+#
+#    #cdef long[::1] xcorr = np.zeros([max_diff+1],dtype=DTYPE)
+#
+#    #NOTE: assumes times non-negative
+#    cdef long diff
+#    cdef unsigned int ii, jj, accum
+#    cdef long curr_comp
+#    cdef double[::1] xcorr = np.zeros([max_diff])
+#    for ii in prange(0,len1,nogil=True):
+#        curr_comp = times1[ii]
+#        for jj in range(0,len2):
+#            diff = times2[jj] - curr_comp
+#            if diff > 0 and diff <= max_diff:
+#                xcorr[diff-1] += 1
+#            elif diff > max_diff:
+#                break
+#    for ii in range(max_diff):
+#        xcorr[ii] = xcorr[ii] / <double>len1
+#    return xcorr.copy()
 
-	cdef unsigned int offset = 0
+cdef double prob_precedes(long[:] times1, int len1,
+        long[:] times2,
+        int len2,
+        int max_diff):
+    cdef int ii, jj
+    cdef long curr_comp, diff, count
+    for ii in prange(len1, nogil=True):
+        curr_comp = times1[ii]
+        for jj in range(len2):
+            diff = times2[jj] - curr_comp
+            if diff > 0 and diff <= max_diff:
+                count += 1
+            elif diff > max_diff:
+                break
+    return (count / <double> len1)
 
-	#cdef long[::1] xcorr = np.zeros([max_diff+1],dtype=DTYPE)
-
-	#NOTE: assumes times non-negative
-	cdef long diff
-	cdef unsigned int ii, jj, accum
-	cdef long curr_comp
-	cdef double[:] xcorr = np.zeros([max_diff+1])
-	for ii in prange(0,len1,nogil=True):
-		curr_comp = times1[ii]
-		for jj in range(0,len2):
-			diff = times2[jj] - curr_comp
-			if diff >= 0 and diff <= max_diff:
-				xcorr[diff] += 1
-			elif diff > max_diff:
-				break
-	for ii in range(max_diff+1):
-		xcorr[ii] = xcorr[ii] / <double>len1
-	return xcorr
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
+#@cython.boundscheck(False)
+#@cython.wraparound(False)
 def corr_mat_from_times(object times,
-		int max_diff=1500,
-		int min_sigs=0,
-		int sig_thresh=0):
-	cdef int this_len, ii, jj, kk
-	cdef long num_times = len(times)
-	cdef long a_time
-	cdef long [:] curr_time
-	cdef long curr_len
-	cdef long [:] times_lens = np.empty([num_times], dtype=np.int)
-	cdef double[:,:,:] np_xcorr = np.empty([num_times, num_times, max_diff+1])
-	# times_ptr = <long **>malloc(num_times * sizeof(long *))
-	# if not times_ptr:
-	# 	raise MemoryError() 
-	for ii in range(num_times):
-		times_lens[ii] = times[ii].shape[0];
-		# times_ptr[ii] = <long *>malloc(this_len * sizeof(long))
-		# if not times_ptr[ii]:
-		# 	raise MemoryError()
-		# for jj in range(this_len):
-		# 	a_time = this_time[jj]
-		# 	times_ptr[ii][jj] = a_time
-	for ii in range(0,num_times):
-		curr_time = times[ii][:]
-		curr_len = times_lens[ii]
-		for jj in range(0,num_times):
-			np_xcorr[ii,jj,:] = _times_xcorr(curr_time, curr_len, 
-						times[jj][:], times_lens[jj], 
-						max_diff)
-	return np_xcorr
+        int max_diff=1500,
+        int min_sigs=0,
+        int sig_thresh=0):
+
+    cdef int this_len, ii, jj
+    cdef long num_times = len(times)
+    cdef long [:] curr_time
+    cdef long curr_len
+    cdef long [::1] times_lens = np.empty([num_times], dtype=np.int)
+    cdef double[:,::1] probprec_mat = np.empty([num_times, num_times])
+    print num_times
+    for ii in range(num_times):
+        times_lens[ii] = times[ii].shape[0];
+    
+    for ii in range(0,num_times):
+        curr_time = times[ii][:]
+        curr_len = times_lens[ii]
+        for jj in range(0,num_times):
+            probprec_mat[ii,jj] = prob_precedes(curr_time, curr_len, 
+                    times[jj][:], times_lens[jj], 
+                    max_diff)
+    return np.asarray(probprec_mat)
 
 
 # THIS IS A POINTER ONLY VERSION OF ABOVE FUNCTION (NON FUNCTIONAL)
@@ -173,9 +182,9 @@ def corr_mat_from_times(object times,
 # 		int max_diff = 3000,
 # 		int min_sigs = 5,
 # 		int sig_thresh = 25):
-	# pass
-	# Naive: [[su.times_xcorr(time1, time2) for time2 in times] 
-	#			for time1 in times]
+    # pass
+    # Naive: [[su.times_xcorr(time1, time2) for time2 in times] 
+    #			for time1 in times]
 
 
 
