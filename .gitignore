@@ -12,3 +12,6 @@ stim_experiment/*.json
 stim_experiment/venv
 stim_experiment/build
 stim_experiment/local_build
+stim_experiment/*.c
+stim_experiment/*.supp
+*.pyc
