@@ -8,7 +8,7 @@ import series_utils as su
 TEST_SIZE = 15
 
 nevdir = '/home/grahams/Dropbox/Hatsopoulos/signalysis/stim_experiment/nev_sorted'
-clmat = rm.nevdir_to_xcorrs(nevdir, test=True, slicelim=TEST_SIZE)
+ppmat = rm.nevdir_to_ppmtxs(nevdir, test=True, slicelim=TEST_SIZE)
 #timelist = rm.stupid_times(nevdir)
 #print "Done with times."
 #test_times = timelist[0][0:TEST_SIZE][0:TEST_SIZE]

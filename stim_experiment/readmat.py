@@ -76,11 +76,23 @@ def timeseries_to_pp(timeseries, **kwargs):
     times = map(lambda x: np.array(x, np.int64), ordered_event_indexed_dict.values())
 
     if test:
-        corr_mat = su.corr_mat_from_times(times[0:slicelim][0:slicelim])
+        pp_mat = su.ppmat_from_times(times[0:slicelim][0:slicelim])
     else:
-        corr_mat = su.corr_mat_from_times(times)
+        pp_mat = su.ppmat_from_times(times)
 
-    return corr_mat
+    unique_events.sort()
+    pp_df = pd.DataFrame(data=pp_mat, index=unique_events[0:slicelim], columns=unique_events[0:slicelim])
+
+    return pp_df
+
+def write_pp_to_csv(pp, fullpath):
+    """Wrapper function to write a pp dataframe to csv,
+    replacing the original path with a csv path."""
+    (bname, ext) = os.path.splitext(fullpath)
+    newpath = bname + ".csv"
+    pp.to_csv(newpath)
+    print newpath
+    return newpath
 
 def nevdir_to_ppmtxs(matdir, **kwargs):
     """Assumes all .mat files in the provided directory are parsed NEV files.
@@ -98,17 +110,15 @@ def nevdir_to_ppmtxs(matdir, **kwargs):
             if ext == '.mat':
                 fullpath = os.path.join(root,f)
                 parsedmat = parse_nev_mat(fullpath)
-                xcorr = timeseries_to_xcorr(parsedmat, **kwargs)
+                pp = timeseries_to_pp(parsedmat, **kwargs)
                 if write:
                     # TODO: Write dataframe
-                    newpath = WRITE_DATAFRAME
+                    newpath = write_pp_to_csv(pp, fullpath)
                     retdct[fullpath] = newpath
                 else:
-                    retdct[fullpath] = xcorr
-    if write:
-        return parsed_mats
-    else:
-        return retdct
+                    retdct[fullpath] = pp
+
+    return retdct
 
 ## THIS FUNCTION LOOPS INFINITELY AND CAUSES A MEMORY LEAK
 #def corr_memview_to_list(memview):

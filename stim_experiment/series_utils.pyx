@@ -87,54 +87,60 @@ ctypedef np.int_t DTYPE_t
 #        xcorr[ii] = xcorr[ii] / <double>len1
 #    return xcorr.copy()
 
-cdef invert_timeseries(char*[:] events, int[:] times):
+cdef invert_timeseries(char[:, ::1] events, int[:] times):
     """This requires the events to be represented as strings."""
     num_events = events.shape[0]
 
-    for ii in range(num_events):
 
 
-cdef double prob_precedes(long[:] times1, int len1,
-        long[:] times2,
-        int len2,
-        int max_diff):
-    cdef int ii, jj
-    cdef long curr_comp, diff, count
-    for ii in prange(len1, nogil=True):
-        curr_comp = times1[ii]
-        for jj in range(len2):
-            diff = times2[jj] - curr_comp
-            if diff > 0 and diff <= max_diff:
-                count += 1
-            elif diff > max_diff:
-                break
-    return (count / <double> len1)
+## This function call should be duplicated in the code below
+#cdef double prob_precedes(long[:] times1, int len1,
+#        long[:] times2,
+#        int len2,
+#        int max_diff):
+#    cdef int ii, jj
+#    cdef long curr_comp, diff, count
+#    for ii in prange(len1, nogil=True):
+#        curr_comp = times1[ii]
+#        for jj in range(len2):
+#            diff = times2[jj] - curr_comp
+#            if diff > 0 and diff <= max_diff:
+#                count += 1
+#            elif diff > max_diff:
+#                break
+#    return (count / <double> len1)
 
 #@cython.boundscheck(False)
 #@cython.wraparound(False)
-def corr_mat_from_times(object times,
-        int max_diff=1500,
-        int min_sigs=0,
-        int sig_thresh=0):
-
-    cdef int this_len, ii, jj
+def ppmat_from_times(object times, int max_diff=1500):
+    cdef int time1_len, time2_len, ii, jj, kk, ll
     cdef long num_times = len(times)
-    cdef long [:] curr_time
-    cdef long curr_len
+    cdef long [:] time1, time2
+    cdef long count, diff
     cdef long [::1] times_lens = np.empty([num_times], dtype=np.int)
-    cdef double[:,::1] probprec_mat = np.empty([num_times, num_times])
+    cdef double[:,::1] pp_mat = np.empty([num_times, num_times])
     print num_times
     for ii in range(num_times):
         times_lens[ii] = times[ii].shape[0];
     
     for ii in range(0,num_times):
-        curr_time = times[ii][:]
-        curr_len = times_lens[ii]
+        time1 = times[ii][:]
+        time1_len = times_lens[ii]
         for jj in range(0,num_times):
-            probprec_mat[ii,jj] = prob_precedes(curr_time, curr_len, 
-                    times[jj][:], times_lens[jj], 
-                    max_diff)
-    return np.asarray(probprec_mat)
+            time2 = times[jj][:]
+            time2_len = times_lens[jj]
+            count = 0
+            for kk in prange(time1_len, nogil=True):
+                for ll in range(time2_len):
+                    diff = time2[ll] - time1[kk]
+                    if diff > 0 and diff <= max_diff:
+                        count += 1
+                        break
+                    elif diff > max_diff:
+                        break
+            pp_mat[ii][jj] = (count / <double> time1_len)
+
+    return np.asarray(pp_mat)
 
 
 # THIS IS A POINTER ONLY VERSION OF ABOVE FUNCTION (NON FUNCTIONAL)
