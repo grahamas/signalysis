@@ -5,12 +5,26 @@ import os
 import readmat as rm
 import series_utils as su
 
-TEST_SIZE = 15
+def test_nevdir_to_ppmtxs(test_size):
+    nevdir = '/home/grahams/Dropbox/Hatsopoulos/signalysis/stim_experiment/nev_sorted'
+    ppmat = rm.nevdir_to_ppmtxs(nevdir, test=True, slicelim=test_size)
+    return ppmat
 
-nevdir = '/home/grahams/Dropbox/Hatsopoulos/signalysis/stim_experiment/nev_sorted'
-ppmat = rm.nevdir_to_ppmtxs(nevdir, test=True, slicelim=TEST_SIZE)
-#timelist = rm.stupid_times(nevdir)
-#print "Done with times."
-#test_times = timelist[0][0:TEST_SIZE][0:TEST_SIZE]
-#cl = rm.corr_memview_to_list(su.corr_mat_from_times(test_times))
-#clmat = np.matrix([[sum(cl[ii][jj][1:-1]) for jj in range(0,TEST_SIZE)] for ii in range(0,TEST_SIZE)])
+def test_get_series():
+    mat_name = '/home/grahams/Dropbox/Hatsopoulos/signalysis/stim_experiment/nev_sorted/A/Z20140902_M1Contra_StimExperimentAPost-08.mat'
+    test_series = parse_nev_mat(mat_name)
+    return test_series
+
+def test_invert_series():
+    unique_events = list(set(timeseries))
+    event_indexed_dict = {k: [] for k in unique_events}
+
+    for time,event in timeseries.iteritems():
+        event_indexed_dict[event] = time
+
+    ordered_event_indexed_dict = collections.OrderedDict(sorted(event_indexed_dict.items(),
+        key=lambda t: t[0]))
+
+    times = map(lambda x: np.array(x, np.int64), ordered_event_indexed_dict.values())
+
+    return times
