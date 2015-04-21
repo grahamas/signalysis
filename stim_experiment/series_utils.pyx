@@ -87,6 +87,13 @@ ctypedef np.int_t DTYPE_t
 #        xcorr[ii] = xcorr[ii] / <double>len1
 #    return xcorr.copy()
 
+cdef invert_timeseries(char*[:] events, int[:] times):
+    """This requires the events to be represented as strings."""
+    num_events = events.shape[0]
+
+    for ii in range(num_events):
+
+
 cdef double prob_precedes(long[:] times1, int len1,
         long[:] times2,
         int len2,
