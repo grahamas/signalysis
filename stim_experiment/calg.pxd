@@ -37,15 +37,31 @@ cdef extern from "libcalg/hash_table.h":
 
 
     ### Hash table operations
-    int hash_table_insert(HashTable *hash_table,
+    bint hash_table_insert(HashTable *hash_table,
                           HashTableKey key,
                           HashTableValue value)
     HashTableValue hash_table_lookup(HashTable *hash_table,
                                      HashTableKey key)
-    int hash_table_remove(HashTable *hash_table, HashTable_key)
+    bint hash_table_remove(HashTable *hash_table, HashTableKey key)
 
     int hash_table_num_entries(HashTable *hash_table)
     ###### 
 
 
     # TODO: excluded hash_table_iterate
+
+
+
+cdef extern from "libcalg/trie.h":
+    ctypedef struct Trie:
+        pass
+    ctypedef void *TrieValue
+
+    Trie *trie_new()
+    void trie_free(Trie *trie)
+
+    bint trie_insert(Trie *trie, char *key, TrieValue value)
+    TrieValue trie_lookup(Trie *trie, char *key)
+    bint trie_remove(Trie *trie, char* key)
+
+    int trie_num_entries(Trie *trie)
