@@ -14,8 +14,8 @@ cdef invert_timeseries(char[:, ::1] events, int[:] times):
 
     
 
-#@cython.boundscheck(False)
-#@cython.wraparound(False)
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def ppmat_from_times(object times, int max_diff=1500):
     cdef int time1_len, time2_len, ii, jj, kk, ll
     cdef long num_times = len(times)
@@ -23,7 +23,6 @@ def ppmat_from_times(object times, int max_diff=1500):
     cdef long count, diff
     cdef long [::1] times_lens = np.empty([num_times], dtype=np.int)
     cdef double[:,::1] pp_mat = np.empty([num_times, num_times])
-    print num_times
     for ii in range(num_times):
         times_lens[ii] = times[ii].shape[0];
     
@@ -43,6 +42,6 @@ def ppmat_from_times(object times, int max_diff=1500):
                     elif diff > max_diff:
                         break
             pp_mat[ii][jj] = (count / <double> time1_len)
-
+    
     return np.asarray(pp_mat)
 
