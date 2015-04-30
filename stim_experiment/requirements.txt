@@ -1,6 +1,5 @@
 Cython==0.22
 argparse==1.2.1
-distribute==0.6.24
 h5py==2.5.0
 numpy==1.9.2
 pandas==0.16.0
