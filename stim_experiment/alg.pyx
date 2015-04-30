@@ -1,5 +1,6 @@
 
 from libc.stdlib cimport malloc,free
+import numpy as np
 
 
 #cdef newHashTable(calg.HashTableHashFunc hash_func,
@@ -165,7 +166,7 @@ cdef class cGrowingList:
 
         cdef int idx = 0
 
-        for data in self.iterate():
+        for data in self:
             nparray[idx] = data
             idx += 1
 
